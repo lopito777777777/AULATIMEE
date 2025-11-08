@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Estudiantina - TinyFeel</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Lobster&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #EA9DAE, #FBDE9C, #F99256);
+      background-size: 300% 300%;
+      animation: bgMove 12s ease infinite;
+      margin: 0;
+      min-height: 100vh;
+      color: #45151B;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-bottom: 40px;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header {
+      background: linear-gradient(45deg, #C74E51, #45151B);
+      color: #FBDE9C;
+      font-size: 32px;
+      padding: 20px;
+      width: 100%;
+      font-family: 'Lobster', cursive;
+      position: sticky;
+      top: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    h1 {
+      margin-top: 40px;
+      font-size: 2.4rem;
+      background: #FBDE9C;
+      color: #45151B;
+      padding: 10px 25px;
+      border-radius: 25px;
+      display: inline-block;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .upload-section {
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+      padding: 25px;
+      text-align: center;
+      width: 90%;
+      max-width: 500px;
+      margin: 30px auto;
+      color: #45151B;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .custom-file-label {
+      background: linear-gradient(45deg, #F99256, #C74E51);
+      color: white;
+      padding: 14px 30px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-block;
+      transition: transform 0.3s, box-shadow 0.3s;
+      margin-top: 10px;
+    }
+
+    .custom-file-label:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 14px rgba(199, 78, 81, 0.6);
+    }
+
+    #uploadStatus {
+      margin-top: 10px;
+      color: #45151B;
+      font-weight: 600;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
+      width: 90%;
+      max-width: 600px;
+      margin-top: 20px;
+    }
+
+    .gallery img {
+      width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      object-fit: cover;
+      height: 140px;
+      transition: transform 0.3s ease;
+    }
+
+    .gallery img:hover {
+      transform: scale(1.05);
+    }
+
+    .btn-volver {
+      background: linear-gradient(45deg, #C74E51, #F99256);
+      border: none;
+      border-radius: 30px;
+      color: #FBDE9C;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      margin-top: 30px;
+    }
+
+    .btn-volver:hover {
+      transform: scale(1.05);
+      background: linear-gradient(45deg, #F99256, #C74E51);
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #45151B;
+    }
+  </style>
+</head>
+
+<body>
+  <header>Estudiantina ✨</header>
+
+  <h1>Subí tus fotos de la Estudiantina 📸</h1>
+
+  <div class="upload-section">
+    <p>Compartí los mejores momentos del evento con tus amigos 💃🕺</p>
+    <label for="fileInput" class="custom-file-label">Seleccionar foto</label>
+    <input type="file" id="fileInput" accept="image/*" />
+    <p id="uploadStatus"></p>
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+
+  <button class="btn-volver" onclick="window.location.href='pantallaprincipal.html'">Volver al inicio</button>
+
+  <footer>&copy; 2025 - TinyFeel</footer>
+
+  <script>
+    const CLOUD_NAME = "daeg7nlzp";
+    const UPLOAD_PRESET = "estudiantinapage";
+
+    const fileInput = document.getElementById('fileInput');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const gallery = document.getElementById('gallery');
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      uploadStatus.textContent = "Subiendo foto a Cloudinary...";
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+
+      try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        const url = data.secure_url;
+
+        uploadStatus.textContent = "✅ Foto subida correctamente";
+        mostrarFoto(url);
+        guardarFotoLocal(url);
+
+      } catch (err) {
+        console.error(err);
+        uploadStatus.textContent = "❌ Error al subir la foto";
+      }
+    });
+
+    function mostrarFoto(url) {
+      const img = document.createElement('img');
+      img.src = url;
+      gallery.appendChild(img);
+    }
+
+    function guardarFotoLocal(url) {
+      const fotos = JSON.parse(localStorage.getItem('fotosEstudiantina') || '[]');
+      fotos.push(url);
+      localStorage.setItem('fotosEstudiantina', JSON.stringify(fotos));
+    }
+
+    function cargarFotos() {
+      const fotos = JSON.parse(localStorage.getItem('fotosEstudiantina') || '[]');
+      fotos.forEach(url => mostrarFoto(url));
+    }
+
+    window.onload = cargarFotos;
+  </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Semana de la Educación Técnica</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(to bottom, #e15b40, #602727);
+      color: #3a2b2b;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #ffd4a3;
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      background: #ffd4a3;
+      padding: 25px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 15px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    button {
+      background: linear-gradient(to right, #ff9472, #f2709c);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 12px 25px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+
+    #imagen-subida {
+      display: block;
+      margin: 30px auto 10px;
+      width: 250px;
+      height: auto;
+      border-radius: 15px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    footer {
+      color: #ffd4a3;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Semana de la Educación Técnica</h1>
+
+  <div class="card">
+    <p>
+      Durante esta semana destacamos los proyectos, logros y talentos de nuestros estudiantes en el ámbito técnico.
+    </p>
+    <p>
+      Explorá talleres, exposiciones y actividades que muestran la pasión por la educación técnica y el espíritu creativo de nuestra comunidad educativa.
+    </p>
+  </div>
+
+  <button onclick="abrirGaleria()">📸 Subir Foto</button>
+
+  <img id="imagen-subida" src="" alt="Foto subida" />
+
+  <footer>© 2025 – TinyFeel ✨</footer>
+
+  <script>
+    // 👉 Envía la señal a App Inventor
+    function abrirGaleria() {
+      if (window.AppInventor) {
+        window.AppInventor.setWebViewString("abrirGaleria");
+      } else {
+        alert("Esto solo funciona desde la app.");
+      }
+    }
+
+    // 👉 Recibe el resultado del upload (desde los bloques)
+    setInterval(() => {
+      try {
+        const data = window.AppInventor.getWebViewString();
+        if (!data || data === "abrirGaleria") return;
+
+        // Verificamos si es un JSON válido
+        const json = JSON.parse(data);
+        if (json.secure_url) {
+          document.getElementById("imagen-subida").src = json.secure_url;
+        }
+      } catch (err) {
+        // Si no es JSON válido, se ignora
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
