@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Estudiantina - TinyFeel</title>
 
-  <!-- Fuentes -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Lobster&display=swap" rel="stylesheet" />
 
   <style>
@@ -66,25 +65,23 @@
       color: #45151B;
     }
 
-    input[type="file"] {
-      display: none;
-    }
-
-    .custom-file-label {
+    .btn-subir {
       background: linear-gradient(45deg, #F99256, #C74E51);
       color: white;
-      padding: 14px 30px;
+      padding: 14px 32px;
       border-radius: 30px;
+      border: none;
       cursor: pointer;
       font-weight: 600;
-      display: inline-block;
-      transition: transform 0.3s, box-shadow 0.3s;
+      font-size: 16px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
       margin-top: 10px;
+      box-shadow: 0 6px 14px rgba(199, 78, 81, 0.5);
     }
 
-    .custom-file-label:hover {
+    .btn-subir:hover {
       transform: scale(1.05);
-      box-shadow: 0 6px 14px rgba(199, 78, 81, 0.6);
+      box-shadow: 0 8px 18px rgba(199, 78, 81, 0.6);
     }
 
     #uploadStatus {
@@ -93,26 +90,46 @@
       font-weight: 600;
     }
 
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    #gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 15px;
       width: 90%;
       max-width: 600px;
       margin-top: 20px;
     }
 
-    .gallery img {
-      width: 100%;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    #gallery div {
+      position: relative;
+      display: inline-block;
+    }
+
+    #gallery img {
+      width: 150px;
+      height: 150px;
       object-fit: cover;
-      height: 140px;
+      border-radius: 15px;
+      border: 3px solid #C74E51;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       transition: transform 0.3s ease;
     }
 
-    .gallery img:hover {
+    #gallery img:hover {
       transform: scale(1.05);
+    }
+
+    .btn-borrar {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
     }
 
     .btn-volver {
@@ -149,68 +166,92 @@
 
   <div class="upload-section">
     <p>Compartí los mejores momentos del evento con tus amigos 💃🕺</p>
-    <label for="fileInput" class="custom-file-label">Seleccionar foto</label>
-    <input type="file" id="fileInput" accept="image/*" />
+    <button class="btn-subir" onclick="subirFoto()">Seleccionar foto</button>
     <p id="uploadStatus"></p>
   </div>
 
-  <div class="gallery" id="gallery"></div>
+  <div id="gallery"></div>
 
   <button class="btn-volver" onclick="window.location.href='pantallaprincipal.html'">Volver al inicio</button>
 
-  <footer>&copy; 2025 - TinyFeel</footer>
-
+ 
   <script>
     const CLOUD_NAME = "daeg7nlzp";
     const UPLOAD_PRESET = "estudiantinapage";
 
-    const fileInput = document.getElementById('fileInput');
-    const uploadStatus = document.getElementById('uploadStatus');
-    const gallery = document.getElementById('gallery');
+    async function subirFoto() {
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
+      fileInput.click();
 
-    fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+      fileInput.onchange = async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
 
-      uploadStatus.textContent = "Subiendo foto a Cloudinary...";
+        document.getElementById("uploadStatus").textContent = "Subiendo foto a Cloudinary...";
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', UPLOAD_PRESET);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
 
-      try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-          method: 'POST',
-          body: formData
-        });
+        try {
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+            method: "POST",
+            body: formData
+          });
 
-        const data = await res.json();
-        const url = data.secure_url;
+          const data = await res.json();
 
-        uploadStatus.textContent = "✅ Foto subida correctamente";
-        mostrarFoto(url);
-        guardarFotoLocal(url);
-
-      } catch (err) {
-        console.error(err);
-        uploadStatus.textContent = "❌ Error al subir la foto";
-      }
-    });
+          if (data.secure_url) {
+            document.getElementById("uploadStatus").textContent = "✅ Foto subida correctamente";
+            mostrarFoto(data.secure_url);
+            guardarFotoLocal(data.secure_url);
+          } else {
+            document.getElementById("uploadStatus").textContent = "⚠️ Error al subir la imagen";
+            console.log(data);
+          }
+        } catch (err) {
+          console.error(err);
+          document.getElementById("uploadStatus").textContent = "❌ Error de conexión o configuración";
+        }
+      };
+    }
 
     function mostrarFoto(url) {
-      const img = document.createElement('img');
+      const gallery = document.getElementById("gallery");
+      const contenedor = document.createElement("div");
+
+      const img = document.createElement("img");
       img.src = url;
-      gallery.appendChild(img);
+
+      const btnBorrar = document.createElement("button");
+      btnBorrar.textContent = "✖";
+      btnBorrar.className = "btn-borrar";
+      btnBorrar.onclick = () => {
+        contenedor.remove();
+        eliminarFotoLocal(url);
+      };
+
+      contenedor.appendChild(img);
+      contenedor.appendChild(btnBorrar);
+      gallery.prepend(contenedor);
     }
 
     function guardarFotoLocal(url) {
-      const fotos = JSON.parse(localStorage.getItem('fotosEstudiantina') || '[]');
+      const fotos = JSON.parse(localStorage.getItem("fotosEstudiantina") || "[]");
       fotos.push(url);
-      localStorage.setItem('fotosEstudiantina', JSON.stringify(fotos));
+      localStorage.setItem("fotosEstudiantina", JSON.stringify(fotos));
+    }
+
+    function eliminarFotoLocal(url) {
+      let fotos = JSON.parse(localStorage.getItem("fotosEstudiantina") || "[]");
+      fotos = fotos.filter(f => f !== url);
+      localStorage.setItem("fotosEstudiantina", JSON.stringify(fotos));
     }
 
     function cargarFotos() {
-      const fotos = JSON.parse(localStorage.getItem('fotosEstudiantina') || '[]');
+      const fotos = JSON.parse(localStorage.getItem("fotosEstudiantina") || "[]");
       fotos.forEach(url => mostrarFoto(url));
     }
 
